@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pytorch_utils.exceptions &mdash; AI Helpers PyTorch Utils 0.1.0a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=edcd63a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2E68D9" >
+
+          
+          
+          <a href="../../index.html">
+            
+          </a>
+              <div class="version">
+                0.1.0a0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_api/modules.html">pytorch-utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2E68D9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AI Helpers PyTorch Utils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pytorch_utils.exceptions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pytorch_utils.exceptions</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="MLError">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.MLError">[docs]</a>
+<span></span><span class="k">class</span> <span class="nc">MLError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception class from which every exception in this library will derive.</span>
+<span class="sd">    It enables other projects using this library to catch all errors coming</span>
+<span class="sd">    from the library with a single &quot;except&quot; statement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="CatalogError">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.CatalogError">[docs]</a>
+<span class="k">class</span> <span class="nc">CatalogError</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the catalog is not valid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="InvalidDataFormatError">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.InvalidDataFormatError">[docs]</a>
+<span class="k">class</span> <span class="nc">InvalidDataFormatError</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the catalog is not valid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="LocalDirNotWriteableException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.LocalDirNotWriteableException">[docs]</a>
+<span class="k">class</span> <span class="nc">LocalDirNotWriteableException</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the local directory is not writeable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="MissingConfigFileException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.MissingConfigFileException">[docs]</a>
+<span class="k">class</span> <span class="nc">MissingConfigFileException</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when a given configuration file cannot be found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadCLIParameterException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadCLIParameterException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadCLIParameterException</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when there is an issue with a parameter</span>
+<span class="sd">    in the CLI (commnand-line interface)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigException</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when a configuration file cannot be loaded, for instance</span>
+<span class="sd">    due to wrong syntax or poor formatting.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigLogLevelException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigLogLevelException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigLogLevelException</span><span class="p">(</span><span class="n">BadConfigException</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the log level (`log_level`) does not exist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigSparkMasterException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigSparkMasterException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigSparkMasterException</span><span class="p">(</span><span class="n">BadConfigException</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the Spark master (`spark_master`) is not valid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigPathException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigPathException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigPathException</span><span class="p">(</span><span class="n">BadConfigException</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the configuration path parameter (`conf_path`) does not</span>
+<span class="sd">    contain at least a directory/path where to find configuration files</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigMissingInputException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigMissingInputException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigMissingInputException</span><span class="p">(</span><span class="n">BadConfigException</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the &#39;input_data&#39;/{&#39;products&#39;, &#39;transactions&#39;} file-path</span>
+<span class="sd">    is missing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigMissingOutputException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigMissingOutputException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigMissingOutputException</span><span class="p">(</span><span class="n">BadConfigException</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the &#39;output_data&#39;/&#39;transactions&#39; file-path is missing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="TaskNotFoundError">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.TaskNotFoundError">[docs]</a>
+<span class="k">class</span> <span class="nc">TaskNotFoundError</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when task name is not found in entrypoints&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="MissingDatasetError">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.MissingDatasetError">[docs]</a>
+<span class="k">class</span> <span class="nc">MissingDatasetError</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a dataset is not found in the catalog&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="DataSetError">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.DataSetError">[docs]</a>
+<span class="k">class</span> <span class="nc">DataSetError</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when there is an issue with a dataset&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="MissingConfigException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.MissingConfigException">[docs]</a>
+<span class="k">class</span> <span class="nc">MissingConfigException</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a configuration is missing&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BadConfigFormatException">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.BadConfigFormatException">[docs]</a>
+<span class="k">class</span> <span class="nc">BadConfigFormatException</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when a configuration is not formatted correctly&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="InconsistentDatasetConfigurations">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.InconsistentDatasetConfigurations">[docs]</a>
+<span class="k">class</span> <span class="nc">InconsistentDatasetConfigurations</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when several inconsistent dataset configurations are being used</span>
+<span class="sd">    to build a dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="NotMonotone">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.NotMonotone">[docs]</a>
+<span class="k">class</span> <span class="nc">NotMonotone</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when some outputs are not a monotone function of some inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="NotNonDecreasing">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.NotNonDecreasing">[docs]</a>
+<span class="k">class</span> <span class="nc">NotNonDecreasing</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when some outputs are not an non-decreasing function of some inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="NotNonIncreasing">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.exceptions.NotNonIncreasing">[docs]</a>
+<span class="k">class</span> <span class="nc">NotNonIncreasing</span><span class="p">(</span><span class="n">MLError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when some outputs are not an non-increasing function of some inputs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, AI-Helpers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
