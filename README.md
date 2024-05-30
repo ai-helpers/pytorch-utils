@@ -2,8 +2,6 @@
 
 `pytorch-utils` is a Python module that provides a collection of utilities to simplify and enhance the use of PyTorch. These utilities are designed to make working with PyTorch more efficient and to reduce boilerplate code.
 
-> TODO: tests & export logging
-
 ## Table of Contents
 
 - [AI Helpers - Pytorch Utils](#ai-helpers---pytorch-utils)
