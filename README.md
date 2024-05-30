@@ -16,7 +16,7 @@
 
 ## Installation
 
-You can install the `pytorch-utils` module via pip:
+You can install the `ai-helpers-pytorch-utils` module via pip:
 
 ```bash
 pip install pytorch-utils
