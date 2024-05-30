@@ -51,6 +51,46 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">pytorch-utils</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pytorch_utils.html">pytorch_utils package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">tests package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_dataframe_row">tests.test_dataframe_row module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_dataframe_row.test_df_row"><code class="docutils literal notranslate"><span class="pre">test_df_row()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_dataframe_row.test_df_row_list"><code class="docutils literal notranslate"><span class="pre">test_df_row_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_dataset_configurations">tests.test_dataset_configurations module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_dataset_configurations.test_dataset"><code class="docutils literal notranslate"><span class="pre">test_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_dataset_configurations.test_train_valid_test_split"><code class="docutils literal notranslate"><span class="pre">test_train_valid_test_split()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_datasets">tests.test_datasets module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_datasets.test_dataset"><code class="docutils literal notranslate"><span class="pre">test_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_datasets.test_instanciation"><code class="docutils literal notranslate"><span class="pre">test_instanciation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_datasets.test_immutability"><code class="docutils literal notranslate"><span class="pre">test_immutability()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_datasets.test_pandas_equivalence"><code class="docutils literal notranslate"><span class="pre">test_pandas_equivalence()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_metrics">tests.test_metrics module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.regression_predictions"><code class="docutils literal notranslate"><span class="pre">regression_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.regression_targets"><code class="docutils literal notranslate"><span class="pre">regression_targets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.callibration_predictions"><code class="docutils literal notranslate"><span class="pre">callibration_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.callibration_targets"><code class="docutils literal notranslate"><span class="pre">callibration_targets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.check_perfect_predictions"><code class="docutils literal notranslate"><span class="pre">check_perfect_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.check_equality_mask"><code class="docutils literal notranslate"><span class="pre">check_equality_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.compare_metrics"><code class="docutils literal notranslate"><span class="pre">compare_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.compare_regression_metrics"><code class="docutils literal notranslate"><span class="pre">compare_regression_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.test_weighted_mse"><code class="docutils literal notranslate"><span class="pre">test_weighted_mse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.test_weighted_mae"><code class="docutils literal notranslate"><span class="pre">test_weighted_mae()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_metrics.test_weighted_callibration"><code class="docutils literal notranslate"><span class="pre">test_weighted_callibration()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-tests.test_modules">tests.test_modules module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_modules.test_non_neg_linear"><code class="docutils literal notranslate"><span class="pre">test_non_neg_linear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_modules.test_non_neg_batch_norm"><code class="docutils literal notranslate"><span class="pre">test_non_neg_batch_norm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_modules.test_bilinear_semi_non_neg"><code class="docutils literal notranslate"><span class="pre">test_bilinear_semi_non_neg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_modules.test_partitioned"><code class="docutils literal notranslate"><span class="pre">test_partitioned()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests.test_modules.test_shifted_embedding"><code class="docutils literal notranslate"><span class="pre">test_shifted_embedding()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-tests">Module contents</a></li>
 </ul>
 </li>
@@ -85,6 +125,144 @@
              
   <section id="tests-package">
 <h1>tests package<a class="headerlink" href="#tests-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-tests.test_dataframe_row">
+<span id="tests-test-dataframe-row-module"></span><h2>tests.test_dataframe_row module<a class="headerlink" href="#module-tests.test_dataframe_row" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dataframe_row.test_df_row">
+<span class="sig-name descname"><span class="pre">test_df_row</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tests/test_dataframe_row.html#test_df_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_dataframe_row.test_df_row" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dataframe_row.test_df_row_list">
+<span class="sig-name descname"><span class="pre">test_df_row_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/tests/test_dataframe_row.html#test_df_row_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_dataframe_row.test_df_row_list" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_dataset_configurations">
+<span id="tests-test-dataset-configurations-module"></span><h2>tests.test_dataset_configurations module<a class="headerlink" href="#module-tests.test_dataset_configurations" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dataset_configurations.test_dataset">
+<span class="sig-name descname"><span class="pre">test_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_dataset_configurations.html#test_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_dataset_configurations.test_dataset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_dataset_configurations.test_train_valid_test_split">
+<span class="sig-name descname"><span class="pre">test_train_valid_test_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_dataset_configurations.html#test_train_valid_test_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_dataset_configurations.test_train_valid_test_split" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_datasets">
+<span id="tests-test-datasets-module"></span><h2>tests.test_datasets module<a class="headerlink" href="#module-tests.test_datasets" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_datasets.test_dataset">
+<span class="sig-name descname"><span class="pre">test_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_datasets.html#test_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_datasets.test_dataset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_datasets.test_instanciation">
+<span class="sig-name descname"><span class="pre">test_instanciation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_datasets.html#test_instanciation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_datasets.test_instanciation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_datasets.test_immutability">
+<span class="sig-name descname"><span class="pre">test_immutability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_datasets.html#test_immutability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_datasets.test_immutability" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_datasets.test_pandas_equivalence">
+<span class="sig-name descname"><span class="pre">test_pandas_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_datasets.html#test_pandas_equivalence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_datasets.test_pandas_equivalence" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_metrics">
+<span id="tests-test-metrics-module"></span><h2>tests.test_metrics module<a class="headerlink" href="#module-tests.test_metrics" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.regression_predictions">
+<span class="sig-name descname"><span class="pre">regression_predictions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#regression_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.regression_predictions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.regression_targets">
+<span class="sig-name descname"><span class="pre">regression_targets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#regression_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.regression_targets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.callibration_predictions">
+<span class="sig-name descname"><span class="pre">callibration_predictions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#callibration_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.callibration_predictions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.callibration_targets">
+<span class="sig-name descname"><span class="pre">callibration_targets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#callibration_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.callibration_targets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.check_perfect_predictions">
+<span class="sig-name descname"><span class="pre">check_perfect_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weighted_metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#check_perfect_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.check_perfect_predictions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.check_equality_mask">
+<span class="sig-name descname"><span class="pre">check_equality_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weighted_metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#check_equality_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.check_equality_mask" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.compare_metrics">
+<span class="sig-name descname"><span class="pre">compare_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighted_metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#compare_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.compare_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.compare_regression_metrics">
+<span class="sig-name descname"><span class="pre">compare_regression_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighted_metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#compare_regression_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.compare_regression_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.test_weighted_mse">
+<span class="sig-name descname"><span class="pre">test_weighted_mse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regression_predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regression_targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#test_weighted_mse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.test_weighted_mse" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.test_weighted_mae">
+<span class="sig-name descname"><span class="pre">test_weighted_mae</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regression_predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regression_targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#test_weighted_mae"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.test_weighted_mae" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_metrics.test_weighted_callibration">
+<span class="sig-name descname"><span class="pre">test_weighted_callibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callibration_predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callibration_targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_metrics.html#test_weighted_callibration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_metrics.test_weighted_callibration" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-tests.test_modules">
+<span id="tests-test-modules-module"></span><h2>tests.test_modules module<a class="headerlink" href="#module-tests.test_modules" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_modules.test_non_neg_linear">
+<span class="sig-name descname"><span class="pre">test_non_neg_linear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_modules.html#test_non_neg_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_modules.test_non_neg_linear" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_modules.test_non_neg_batch_norm">
+<span class="sig-name descname"><span class="pre">test_non_neg_batch_norm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_modules.html#test_non_neg_batch_norm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_modules.test_non_neg_batch_norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_modules.test_bilinear_semi_non_neg">
+<span class="sig-name descname"><span class="pre">test_bilinear_semi_non_neg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_modules.html#test_bilinear_semi_non_neg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_modules.test_bilinear_semi_non_neg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_modules.test_partitioned">
+<span class="sig-name descname"><span class="pre">test_partitioned</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_modules.html#test_partitioned"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_modules.test_partitioned" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.test_modules.test_shifted_embedding">
+<span class="sig-name descname"><span class="pre">test_shifted_embedding</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tests/test_modules.html#test_shifted_embedding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.test_modules.test_shifted_embedding" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
 <section id="module-tests">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tests" title="Link to this heading"></a></h2>
 </section>

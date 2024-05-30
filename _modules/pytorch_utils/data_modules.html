@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pytorch_utils.data_modules &mdash; AI Helpers PyTorch Utils 0.1.0a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=edcd63a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2E68D9" >
+
+          
+          
+          <a href="../../index.html">
+            
+          </a>
+              <div class="version">
+                0.1.0a0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_api/modules.html">pytorch-utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2E68D9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AI Helpers PyTorch Utils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pytorch_utils.data_modules</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pytorch_utils.data_modules</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">no_type_check</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">pytorch_lightning.core.saving</span> <span class="kn">import</span> <span class="n">_load_from_checkpoint</span>
+<span class="kn">from</span> <span class="nn">sklearn.exceptions</span> <span class="kn">import</span> <span class="n">NotFittedError</span>
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">ConcatDataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">pytorch_utils.logging.loggers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Logger</span><span class="p">,</span>
+    <span class="n">VoidLogger</span><span class="p">,</span>
+    <span class="n">is_logging_disabled</span><span class="p">,</span>
+    <span class="n">use_loggers</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytorch_utils.pandas.utils</span> <span class="kn">import</span> <span class="n">DataFrameRow</span><span class="p">,</span> <span class="n">ListDataFrameRows</span>
+<span class="kn">from</span> <span class="nn">pytorch_utils.dataset_configurations</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AugmentedBernoulliDatasetConfigs</span><span class="p">,</span>
+    <span class="n">DataAugmentationConfig</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytorch_utils.datasets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AugmentedBernoulliDataset</span><span class="p">,</span>
+    <span class="n">MLStage</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytorch_utils.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BatchTorchTensors</span><span class="p">,</span>
+    <span class="n">NamedTorchTensors</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule">[docs]</a>
+<span class="k">class</span> <span class="nc">AugmentedBernoulliDataModule</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For prediction: attributes `prediction_df` (and</span>
+<span class="sd">    optionally `prediction_scaling_factors`,</span>
+<span class="sd">    `prediction_min_augmented_value` and</span>
+<span class="sd">    `prediction_max_augmented_value`) must be set as desired.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">augmented_bernoulli_dataset_configs</span><span class="p">:</span> <span class="n">AugmentedBernoulliDatasetConfigs</span><span class="p">,</span>
+        <span class="n">preprocessing_pipeline</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Pipeline</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">train_dataloader_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">val_dataloader_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">test_dataloader_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">predict_dataloader_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">data_module_logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">=</span> <span class="n">VoidLogger</span><span class="p">(),</span>
+        <span class="n">preprocessing_pipeline_logger</span><span class="p">:</span> <span class="n">Logger</span> <span class="o">=</span> <span class="n">VoidLogger</span><span class="p">(),</span>
+        <span class="n">prepare_data_per_node</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Set attributes</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prepare_data_per_node</span> <span class="o">=</span> <span class="n">prepare_data_per_node</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span> <span class="o">=</span> <span class="n">augmented_bernoulli_dataset_configs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">augmented_col</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">label_col</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">sample_weight_col</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span> <span class="o">=</span> <span class="n">preprocessing_pipeline</span>
+
+        <span class="c1"># Copying the dataloader params before updating them is safer (it avoids</span>
+        <span class="c1"># modifying the same underlying object when the same dictionary is passed</span>
+        <span class="c1"># as input several times: see below with collate_fn and shuffle)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">train_dataloader_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_dataloader_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">val_dataloader_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_dataloader_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">test_dataloader_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predict_dataloader_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">predict_dataloader_params</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># see property batch_size and associated setter below</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loggers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;data_module_logger&quot;</span><span class="p">:</span> <span class="n">data_module_logger</span><span class="p">,</span>
+            <span class="s2">&quot;preprocessing_pipeline_logger&quot;</span><span class="p">:</span> <span class="n">preprocessing_pipeline_logger</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Teh following attributes must be set depending on what we wish to predict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_df</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_scaling_factors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_min_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_max_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_features_dtypes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>  <span class="c1"># features dtypes before preprocessing</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_features_dtypes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>  <span class="c1"># features dtypes after preprocessing</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_real_features</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_categorical_features</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_set</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_set</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validation_set</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set pipeline outputs to pandas dataframes</span>
+        <span class="c1"># -------------------</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="o">.</span><span class="n">set_output</span><span class="p">(</span><span class="n">transform</span><span class="o">=</span><span class="s2">&quot;pandas&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Overwrite collate_fn with pandas-specific version</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;collate_fn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pandas_collate_fn</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;collate_fn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pandas_collate_fn</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;collate_fn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pandas_collate_fn</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predict_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;shuffle&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># never shuffle when predicting</span>
+                <span class="s2">&quot;collate_fn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pandas_collate_fn</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Save hyperparameters</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">()</span>  <span class="c1"># saves all constructor params by default</span>
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.preprocessing_pandas_collate_fn">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.preprocessing_pandas_collate_fn">[docs]</a>
+    <span class="k">def</span> <span class="nf">preprocessing_pandas_collate_fn</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DataFrameRow</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">NamedTorchTensors</span><span class="p">,</span> <span class="n">BatchTorchTensors</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        More computationally efficient than using `collate_fn=lambda batch: pd.concat(batch, axis=0, sort=True)` and</span>
+<span class="sd">        setting `fitted_transformers_pipeline=self.preprocessing_pipeline` in AugmentedBernoulliDataset. This</span>
+<span class="sd">        vectorized the transform operations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># collated_batch = pd.concat(batch, axis=0, sort=True)</span>
+        <span class="n">collated_batch</span> <span class="o">=</span> <span class="n">ListDataFrameRows</span><span class="o">.</span><span class="n">from_list_rows</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span><span class="o">.</span><span class="n">dataframe</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_to_tensors</span><span class="p">(</span><span class="n">collated_batch</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.transform">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.transform">[docs]</a>
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Implicit assumption in the following implementation: the preprocessing pipeline does not</span>
+<span class="sd">        modify the number of rows.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contains_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_col</span> <span class="ow">in</span> <span class="n">batch</span>
+        <span class="n">contains_weights</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">in</span> <span class="n">batch</span>
+        <span class="p">)</span>
+        <span class="n">non_feature_cols</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[]</span>
+            <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span> <span class="k">if</span> <span class="n">contains_labels</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span> <span class="k">if</span> <span class="n">contains_weights</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">non_feature_cols</span><span class="p">)</span>
+        <span class="n">transformed_batch</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span>
+            <span class="k">else</span> <span class="n">features</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">contains_labels</span><span class="p">:</span>
+            <span class="n">transformed_batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">contains_weights</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transformed_batch</span><span class="p">):</span>
+            <span class="c1"># add back sample_weight_col if removed by preprocessing pipeline</span>
+            <span class="n">transformed_batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">transformed_batch</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.transform_to_tensors">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.transform_to_tensors">[docs]</a>
+    <span class="k">def</span> <span class="nf">transform_to_tensors</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">NamedTorchTensors</span><span class="p">,</span> <span class="n">BatchTorchTensors</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_to_tensors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">batch</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.augment_transform_to_tensors">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.augment_transform_to_tensors">[docs]</a>
+    <span class="k">def</span> <span class="nf">augment_transform_to_tensors</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">batch</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">augmentation_scaling_factors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+        <span class="n">min_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">max_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">NamedTorchTensors</span><span class="p">,</span> <span class="n">BatchTorchTensors</span><span class="p">]:</span>
+        <span class="n">bb_conv_data_augmentation_conf</span> <span class="o">=</span> <span class="n">DataAugmentationConfig</span><span class="p">(</span>
+            <span class="n">augmented_col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">,</span>
+            <span class="n">scaling_factors</span><span class="o">=</span><span class="n">augmentation_scaling_factors</span><span class="p">,</span>
+            <span class="n">min_value</span><span class="o">=</span><span class="n">min_augmented_value</span><span class="p">,</span>
+            <span class="n">max_value</span><span class="o">=</span><span class="n">max_augmented_value</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_to_tensors</span><span class="p">(</span><span class="n">bb_conv_data_augmentation_conf</span><span class="o">.</span><span class="n">augment_data</span><span class="p">(</span><span class="n">batch</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.format_to_tensors">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.format_to_tensors">[docs]</a>
+    <span class="k">def</span> <span class="nf">format_to_tensors</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">transformed_batch</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">NamedTorchTensors</span><span class="p">,</span> <span class="n">BatchTorchTensors</span><span class="p">]:</span>
+        <span class="n">contains_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_col</span> <span class="ow">in</span> <span class="n">transformed_batch</span>
+        <span class="n">contains_weights</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">in</span> <span class="n">transformed_batch</span>
+        <span class="p">)</span>
+        <span class="n">non_feature_cols</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[]</span>
+            <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span> <span class="k">if</span> <span class="n">contains_labels</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span> <span class="k">if</span> <span class="n">contains_weights</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="p">)</span>
+        <span class="n">formatted_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_pandas_dataframe</span><span class="p">(</span>
+            <span class="n">transformed_batch</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">non_feature_cols</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">contains_labels</span><span class="p">:</span>
+            <span class="n">formatted_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_pandas_series</span><span class="p">(</span><span class="n">transformed_batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">])</span>
+            <span class="n">formatted_weights</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_format_pandas_series</span><span class="p">(</span><span class="n">transformed_batch</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">contains_weights</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">formatted_features</span><span class="p">,</span> <span class="n">formatted_labels</span><span class="p">,</span> <span class="n">formatted_weights</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">formatted_features</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_format_pandas_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NamedTorchTensors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">f</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span>
+                <span class="n">dataframe</span><span class="p">[</span>
+                    <span class="c1"># 1D tensors for categorical features, 2D for all other features</span>
+                    <span class="n">f</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_categorical_features</span> <span class="k">else</span> <span class="p">[</span><span class="n">f</span><span class="p">]</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dataframe</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_format_pandas_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_preprocessing_pipeline_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Boolean indicating whether pipeline is fitted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="p">)</span>
+                <span class="n">is_preprocessing_pipeline_fitted</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="n">NotFittedError</span><span class="p">:</span>
+                <span class="n">is_preprocessing_pipeline_fitted</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="n">is_preprocessing_pipeline_fitted</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.fit_preprocessing_pipeline">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.fit_preprocessing_pipeline">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit_preprocessing_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">refit</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_preprocessing_pipeline_fitted</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_preprocessing_pipeline</span><span class="p">()</span></div>
+
+
+    <span class="nd">@use_loggers</span><span class="p">(</span><span class="s2">&quot;preprocessing_pipeline_logger&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_fit_preprocessing_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit training pipeline if not None (otherwise do nothing).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">sklearn_autolog</span><span class="p">(</span><span class="n">disable</span><span class="o">=</span><span class="n">is_logging_disabled</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">preprocessing_pipeline</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">all_training_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">sklearn_autolog</span><span class="p">(</span><span class="n">disable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input_features_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_features_dtypes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_input_features_dtypes</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">dtypes</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_features_dtypes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_features_dtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_features_dtypes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit_preprocessing_pipeline</span><span class="p">(</span><span class="n">refit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_features_dtypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
+                <span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">dtypes</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_features_dtypes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_features_dtypes</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_real_features</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_real_features</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_real_features</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output_features_dtypes</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">output_features_dtypes</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">))</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_real_features</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_categorical_features</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_categorical_features</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">categorical_features_names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output_features_dtypes</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">output_features_dtypes</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">))</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
+
+            <span class="n">training_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">all_training_data</span><span class="p">[</span>
+                <span class="n">categorical_features_names</span>
+            <span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_categorical_features</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">f</span><span class="p">:</span> <span class="n">training_data</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">categorical_features_names</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_categorical_features</span>
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.prepare_data">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.prepare_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Fit preprocessing pipeline</span>
+        <span class="c1"># -------------------</span>
+        <span class="c1"># Preferable to fit the pipeline in `prepare_data` rather than in `setup` since in case of</span>
+        <span class="c1"># parallel data loading, the `setup` method will be called once in every thread which is useless</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_preprocessing_pipeline</span><span class="p">(</span><span class="n">refit</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.setup">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.setup">[docs]</a>
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">MLStage</span><span class="p">[</span><span class="n">stage</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Argument stage should be either &#39;fit&#39;, &#39;validate&#39;, &#39;test&#39; or &#39;predict&#39; but &#39;</span><span class="si">{</span><span class="n">stage</span><span class="si">}</span><span class="s2">&#39; was given.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">predict</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Attribute prediction_df must be set before predict setup.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Fit preprocessing pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_preprocessing_pipeline</span><span class="p">(</span><span class="n">refit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Create dataset corresponding to ml stage</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">AugmentedBernoulliDataset</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">ListDataFrameRows</span><span class="o">.</span><span class="n">from_pandas_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_df</span><span class="p">),</span>
+                <span class="n">is_success</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># labels are unknown in this case</span>
+                <span class="n">augmented_col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">,</span>
+                <span class="n">fitted_preprocessing_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">data_augmentation_scaling_factors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_scaling_factors</span><span class="p">,</span>
+                <span class="n">label_col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">,</span>
+                <span class="n">labels_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+                <span class="n">sample_weight_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">min_augmented_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_min_augmented_value</span><span class="p">,</span>
+                <span class="n">max_augmented_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_max_augmented_value</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">predict</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span> <span class="p">(</span>
+                <span class="n">ConcatDataset</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">AugmentedBernoulliDataset</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
+                            <span class="n">config</span><span class="o">=</span><span class="n">ds_config</span><span class="p">,</span>
+                            <span class="n">ml_stage</span><span class="o">=</span><span class="n">MLStage</span><span class="p">[</span><span class="n">stage</span><span class="p">],</span>  <span class="c1"># type: ignore</span>
+                            <span class="n">fitted_preprocessing_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">label_col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">,</span>
+                            <span class="n">labels_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+                            <span class="n">sample_weight_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">ds_config</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># For the fit stage, also create validation set</span>
+        <span class="n">validation_dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ConcatDataset</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">AugmentedBernoulliDataset</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span>
+                        <span class="n">config</span><span class="o">=</span><span class="n">ds_config</span><span class="p">,</span>
+                        <span class="n">ml_stage</span><span class="o">=</span><span class="n">MLStage</span><span class="o">.</span><span class="n">validate</span><span class="p">,</span>
+                        <span class="n">fitted_preprocessing_pipeline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">label_col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">,</span>
+                        <span class="n">labels_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+                        <span class="n">sample_weight_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">ds_config</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">stage</span> <span class="o">==</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Set dataset attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_datasets</span><span class="p">(</span><span class="n">MLStage</span><span class="p">[</span><span class="n">stage</span><span class="p">],</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">validation_dataset</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.setup_datasets">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.setup_datasets">[docs]</a>
+    <span class="k">def</span> <span class="nf">setup_datasets</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ml_stage</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="n">MLStage</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">validate</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">predict</span><span class="p">],</span>
+        <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">validation_dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">fit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">training_set</span> <span class="o">=</span> <span class="n">dataset</span>
+            <span class="k">if</span> <span class="n">validation_dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;validation_dataset should not be None when ml_stage=MLStage.fit&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validation_set</span> <span class="o">=</span> <span class="n">validation_dataset</span>
+        <span class="k">elif</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">validate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validation_set</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="k">elif</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">test</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_set</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="k">elif</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">predict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prediction_set</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stage </span><span class="si">{</span><span class="n">ml_stage</span><span class="si">}</span><span class="s2"> is not implemented&quot;</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+
+    <span class="nd">@batch_size</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates batch size (useful to apply `pytorch_lightning.trainer.Trainer.tune.scale_batch_size`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+
+        <span class="c1"># update batch size of all dataloaders</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predict_dataloader_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">})</span>
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.train_dataloader">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.train_dataloader">[docs]</a>
+    <span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_set</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader_params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.val_dataloader">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.val_dataloader">[docs]</a>
+    <span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validation_set</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">val_dataloader_params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.test_dataloader">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.test_dataloader">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_set</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">test_dataloader_params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.predict_dataloader">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.predict_dataloader">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_set</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_dataloader_params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.clear_data">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.clear_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_features_dtypes</span>  <span class="c1"># just to make sure features have been saved before erasing data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_categorical_features</span>  <span class="c1"># just to make sure categories have been computed before erasing data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">clear_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;training_set&quot;</span><span class="p">):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_set</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;validation_set&quot;</span><span class="p">):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_set</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;test_set&quot;</span><span class="p">):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_set</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;prediction_set&quot;</span><span class="p">):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_set</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.log">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.log">[docs]</a>
+    <span class="nd">@use_loggers</span><span class="p">(</span><span class="s2">&quot;data_module_logger&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logger</span><span class="p">:</span> <span class="n">Logger</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">augmented_bernoulli_dataset_configs</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_param</span><span class="p">(</span><span class="s2">&quot;augmented_col&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_param</span><span class="p">(</span><span class="s2">&quot;label_col&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_param</span><span class="p">(</span><span class="s2">&quot;sample_weight_col&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_param</span><span class="p">(</span><span class="s2">&quot;prepare_data_per_node&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_data_per_node</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_param</span><span class="p">(</span><span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_params</span><span class="p">(</span>
+            <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;train_dataloader__</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader_params</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_params</span><span class="p">(</span>
+            <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;val_dataloader__</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_dataloader_params</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_params</span><span class="p">(</span>
+            <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;test_dataloader__</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_dataloader_params</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log_params</span><span class="p">(</span>
+            <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;predict_dataloader__</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_dataloader_params</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_preprocessing_pipeline_fitted</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">log_param</span><span class="p">(</span><span class="s2">&quot;real_features&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_real_features</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">log_pandas_artifact</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">input_features_dtypes</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(),</span> <span class="s2">&quot;input_features_dtypes&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">log_pandas_artifact</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output_features_dtypes</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(),</span> <span class="s2">&quot;output_features_dtypes&quot;</span>
+            <span class="p">)</span>
+            <span class="n">categorical_features_cardinals</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_categorical_features</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cardinals&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">log_pandas_artifact</span><span class="p">(</span>
+                <span class="n">categorical_features_cardinals</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(),</span>
+                <span class="s2">&quot;categorical_features_cardinals&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataModule.load_from_checkpoint">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.data_modules.AugmentedBernoulliDataModule.load_from_checkpoint">[docs]</a>
+    <span class="nd">@no_type_check</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_checkpoint</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">checkpoint_path</span><span class="p">,</span>
+        <span class="n">map_location</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hparams_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">strict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AugmentedBernoulliDataModule</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        We override this method to correct a bug with `map_location` argument.</span>
+<span class="sd">        See Github issue: https://github.com/Lightning-AI/lightning/issues/17945</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">loaded</span> <span class="o">=</span> <span class="n">_load_from_checkpoint</span><span class="p">(</span>
+            <span class="bp">cls</span><span class="p">,</span>
+            <span class="n">checkpoint_path</span><span class="p">,</span>
+            <span class="n">map_location</span><span class="o">=</span><span class="n">map_location</span><span class="p">,</span>
+            <span class="n">hparams_file</span><span class="o">=</span><span class="n">hparams_file</span><span class="p">,</span>
+            <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span> <span class="n">loaded</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, AI-Helpers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

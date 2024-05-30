@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pytorch_utils.datasets &mdash; AI Helpers PyTorch Utils 0.1.0a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=edcd63a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2E68D9" >
+
+          
+          
+          <a href="../../index.html">
+            
+          </a>
+              <div class="version">
+                0.1.0a0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_api/modules.html">pytorch-utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2E68D9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AI Helpers PyTorch Utils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pytorch_utils.datasets</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pytorch_utils.datasets</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">pytorch_utils.pandas.utils</span> <span class="kn">import</span> <span class="n">DataFrameRow</span><span class="p">,</span> <span class="n">ListDataFrameRows</span>
+<span class="kn">from</span> <span class="nn">pytorch_utils.dataset_configurations</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AugmentedBernoulliDatasetConfig</span><span class="p">,</span>
+    <span class="n">DataAugmentationConfig</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="MLStage">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.datasets.MLStage">[docs]</a>
+<span class="k">class</span> <span class="nc">MLStage</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">fit</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">validate</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">test</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">predict</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="AugmentedBernoulliDataset">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.datasets.AugmentedBernoulliDataset">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AugmentedBernoulliDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements storage-efficient data augmentation of Bernoulli samples</span>
+<span class="sd">    (binary outcomes: successful or not) as well as data transformations</span>
+<span class="sd">    (e.g., scaling, encoding, ...).</span>
+<span class="sd">    If `is_success` is set to None, only features are generated (labels are dropped).</span>
+<span class="sd">    This is useful for prediction sets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span><span class="p">:</span> <span class="n">ListDataFrameRows</span>
+    <span class="n">is_success</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+        <span class="nb">bool</span>
+    <span class="p">]</span>  <span class="c1"># if None then only features are generated, if True labels are set to 1, If False labels are set to 0</span>
+    <span class="n">augmented_col</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">fitted_preprocessing_pipeline</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Pipeline</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">data_augmentation_scaling_factors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">label_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;success_labels&quot;</span>  <span class="c1"># name of label column</span>
+    <span class="n">labels_dtype</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">)</span>
+    <span class="n">sample_weight_col</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">min_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+    <span class="n">max_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Sort data_augmentation scaling factors</span>
+        <span class="c1"># This ensures that two dataclasses that only differ by the ordering of</span>
+        <span class="c1"># `data_augmentation_scaling_factors` are considered equal</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;data_augmentation_scaling_factors&quot;</span><span class="p">,</span>
+            <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_augmentation_scaling_factors</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Check attributes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`augmented_col` should be a column of dataframe `data`&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span><span class="p">:</span>
+            <span class="n">check_is_fitted</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span><span class="p">,</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;fitted_preprocessing_pipeline is not fitted&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_augmentation_scaling_factors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`data_augmentation_scaling_factors` should not be an empty array&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute augmented_df_indices and augmented_df_lengths_cumsum based on data_augmentation_scaling_factors.</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;augmented_df_indices&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_augmented_df_indices</span><span class="p">())</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;augmented_df_lengths_cumsum&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_augmented_df_lengths_cumsum</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;indices_rows_mapping&quot;</span><span class="p">,</span>
+            <span class="p">{</span><span class="n">row</span><span class="o">.</span><span class="n">index</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)},</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Set pipeline ouput to pandas</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span><span class="o">.</span><span class="n">set_output</span><span class="p">(</span><span class="n">transform</span><span class="o">=</span><span class="s2">&quot;pandas&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AugmentedBernoulliDataset.from_config">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.datasets.AugmentedBernoulliDataset.from_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">AugmentedBernoulliDatasetConfig</span><span class="p">,</span>
+        <span class="n">ml_stage</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="n">MLStage</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">validate</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">test</span><span class="p">],</span>
+        <span class="n">fitted_preprocessing_pipeline</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Pipeline</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">label_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;success_labels&quot;</span><span class="p">,</span>
+        <span class="n">labels_dtype</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+        <span class="n">sample_weight_col</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AugmentedBernoulliDataset</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ml_stage</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">MLStage</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">validate</span><span class="p">,</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">test</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;ml_stage should be one of MLStage.fit, MLStage.validate or MLStage.test&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">ListDataFrameRows</span><span class="o">.</span><span class="n">from_pandas_df</span><span class="p">(</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">training_data</span>
+                <span class="k">if</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">fit</span>
+                <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">validation_data</span>
+                <span class="k">if</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">validate</span>
+                <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">test_data</span>
+                <span class="k">if</span> <span class="n">ml_stage</span> <span class="ow">is</span> <span class="n">MLStage</span><span class="o">.</span><span class="n">test</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+            <span class="n">is_success</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">is_success</span><span class="p">,</span>
+            <span class="n">augmented_col</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">,</span>
+            <span class="n">fitted_preprocessing_pipeline</span><span class="o">=</span><span class="n">fitted_preprocessing_pipeline</span><span class="p">,</span>
+            <span class="n">data_augmentation_scaling_factors</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_augmentation_scaling_factors</span><span class="p">,</span>
+            <span class="n">label_col</span><span class="o">=</span><span class="n">label_col</span><span class="p">,</span>
+            <span class="n">labels_dtype</span><span class="o">=</span><span class="n">labels_dtype</span><span class="p">,</span>
+            <span class="n">sample_weight_col</span><span class="o">=</span><span class="n">sample_weight_col</span><span class="p">,</span>
+            <span class="n">min_augmented_value</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_augmentation_config</span><span class="o">.</span><span class="n">min_value</span><span class="p">,</span>
+            <span class="n">max_augmented_value</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">data_augmentation_config</span><span class="o">.</span><span class="n">max_value</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataframe</span>
+
+<div class="viewcode-block" id="AugmentedBernoulliDataset.clear_data">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.datasets.AugmentedBernoulliDataset.clear_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AugmentedBernoulliDataset</span><span class="p">:</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[:</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_build_augmented_df_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">]:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">build_dataframe</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">df</span><span class="p">[</span>
+                <span class="n">DataAugmentationConfig</span><span class="o">.</span><span class="n">scaling_filter</span><span class="p">(</span>
+                    <span class="n">df</span><span class="p">,</span>
+                    <span class="n">scaling_factor</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">,</span>
+                    <span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_augmented_value</span><span class="p">,</span>
+                    <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_augmented_value</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+            <span class="k">for</span> <span class="n">scaling_factor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_augmentation_scaling_factors</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_build_augmented_df_lengths_cumsum</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="k">for</span> <span class="n">indices</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;augmented_df_indices&quot;</span><span class="p">)])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">raw_feature_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">transformed_feature_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span><span class="o">.</span><span class="n">get_feature_names_out</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrameRow</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Implicit assumption in the following implementation: the preprocessing pipeline does not</span>
+<span class="sd">        modify the number of rows.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s2">&quot;single positional indexer is out-of-bounds&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute actual index</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">augmented_df_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;augmented_df_lengths_cumsum&quot;</span><span class="p">),</span> <span class="n">index</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;right&quot;</span>
+        <span class="p">)</span>
+        <span class="n">augmented_df_index</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">index</span> <span class="o">-</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;augmented_df_lengths_cumsum&quot;</span><span class="p">)[</span><span class="n">augmented_df_id</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">augmented_df_id</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="n">index</span>
+        <span class="p">)</span>
+        <span class="n">actual_index</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;augmented_df_indices&quot;</span><span class="p">)[</span><span class="n">augmented_df_id</span><span class="p">][</span><span class="n">augmented_df_index</span><span class="p">]</span>
+        <span class="n">row_number</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;indices_rows_mapping&quot;</span><span class="p">)[</span><span class="n">actual_index</span><span class="p">]</span>
+
+        <span class="c1"># Get raw features</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">raw_features</span><span class="p">:</span> <span class="n">DataFrameRow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row_number</span><span class="p">]</span>
+
+        <span class="c1"># Apply scaling factor</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">scaling_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_augmentation_scaling_factors</span><span class="p">[</span><span class="n">augmented_df_id</span><span class="p">]</span>
+        <span class="n">raw_features</span> <span class="o">=</span> <span class="n">raw_features</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">column</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">scaling_factor</span> <span class="o">*</span> <span class="n">raw_features</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Apply transformations</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">DataFrameRow</span><span class="o">.</span><span class="n">from_single_row_df</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">raw_features</span><span class="o">.</span><span class="n">single_row_df</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitted_preprocessing_pipeline</span>
+            <span class="k">else</span> <span class="n">raw_features</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Add label</span>
+        <span class="c1"># -------------------</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_success</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                <span class="n">column</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_col</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_success</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_dtype</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Add weights back if removed by preprocessing pipeline</span>
+        <span class="c1"># -------------------</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">):</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                <span class="n">column</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">raw_features</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">raw_features</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_weight_col</span><span class="p">],</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sample</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">augmented_df_lengths_cumsum</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, AI-Helpers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pytorch_utils.modules &mdash; AI Helpers PyTorch Utils 0.1.0a0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=edcd63a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2E68D9" >
+
+          
+          
+          <a href="../../index.html">
+            
+          </a>
+              <div class="version">
+                0.1.0a0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_api/modules.html">pytorch-utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2E68D9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AI Helpers PyTorch Utils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pytorch_utils.modules</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pytorch_utils.modules</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">signature</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plotly</span>
+<span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
+<span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="kn">from</span> <span class="nn">pytorch_utils.data_modules</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytorch_utils.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BatchTorchTensors</span><span class="p">,</span>
+    <span class="n">CategoricalFeatureEmbedding</span><span class="p">,</span>
+    <span class="n">NamedTorchMetrics</span><span class="p">,</span>
+    <span class="n">NamedTorchTensors</span><span class="p">,</span>
+    <span class="n">assert_monotone</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="LinearNonNeg">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.LinearNonNeg">[docs]</a>
+<span class="k">class</span> <span class="nc">LinearNonNeg</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Alternative linear layer with nonnegative weights (bias unchanged).</span>
+<span class="sd">    This ensures the outputs are always a non-decreasing function of the inputs</span>
+<span class="sd">    (no matter the values of parameters `self.weight` and `self.bias`, which may vary during training).</span>
+
+<span class="sd">    The easiest way to implement this class with minimal code is to subclass `torch.nn.Linear` and</span>
+<span class="sd">    apply a positive transformation (namely `torch.nn.functional.elu` shifted by 1) to the weights</span>
+<span class="sd">    before applying the linear transformation in the `forward` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LinearNonNeg.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.LinearNonNeg.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span>
+            <span class="nb">input</span><span class="p">,</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">elu</span><span class="p">(</span>  <span class="c1"># this is the only difference with the original torch.nn.Linear module</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BatchNorm1dNonNeg">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.BatchNorm1dNonNeg">[docs]</a>
+<span class="k">class</span> <span class="nc">BatchNorm1dNonNeg</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Alternative batch normalization with nonnegative weights (bias unchanged).</span>
+<span class="sd">    This ensures the outputs are always a non-decreasing function of the inputs</span>
+<span class="sd">    when `self.training=False` (no matter the values of parameters `self.weight` and `self.bias`,</span>
+<span class="sd">    which may vary during training).</span>
+
+<span class="sd">    The easiest way to implement this class with minimal code is to subclass</span>
+<span class="sd">    `torch.nn.BatchNorm1d` and apply a positive transformation (namely `torch.nn.functional.elu` shifted by 1)</span>
+<span class="sd">    to the weights before applying the batch norm transformation in the `forward` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BatchNorm1dNonNeg.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.BatchNorm1dNonNeg.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_input_dim</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+        <span class="c1"># exponential_average_factor is set to self.momentum</span>
+        <span class="c1"># (when it is available) only so that it gets updated</span>
+        <span class="c1"># in ONNX graph when this node is exported to ONNX.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">exponential_average_factor</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">exponential_average_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_running_stats</span><span class="p">:</span>
+            <span class="c1"># TODO: if statement only here to tell the jit to skip emitting this when it is None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_batches_tracked</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore[has-type]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_batches_tracked</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># type: ignore[has-type]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># use cumulative moving average</span>
+                    <span class="n">exponential_average_factor</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_batches_tracked</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># use exponential moving average</span>
+                    <span class="n">exponential_average_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span>
+
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decide whether the mini-batch stats should be used for normalization rather than the buffers.</span>
+<span class="sd">        Mini-batch stats are used in training mode, and in eval mode when buffers are None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
+            <span class="n">bn_training</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bn_training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">running_mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">running_var</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Buffers are only updated if they are to be tracked and we are in training mode. Thus they only need to be</span>
+<span class="sd">        passed when the update should occur (i.e. in training mode when they are tracked), or when buffer stats are</span>
+<span class="sd">        used for normalization (i.e. in eval mode when buffers are not None).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">(</span>
+            <span class="nb">input</span><span class="p">,</span>
+            <span class="c1"># If buffers are not to be tracked, ensure that they won&#39;t be updated</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running_mean</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_running_stats</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running_var</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_running_stats</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">elu</span><span class="p">(</span>  <span class="c1"># this is the only difference with the original torch.nn.Linear module</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span>
+            <span class="n">bn_training</span><span class="p">,</span>
+            <span class="n">exponential_average_factor</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LinearSemiNonNeg">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.LinearSemiNonNeg">[docs]</a>
+<span class="k">class</span> <span class="nc">LinearSemiNonNeg</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Alternative linear layer combining a standard linear layer (`torch.nn.Linear`)</span>
+<span class="sd">    together with a `LinearNonNeg` layer (by summing the two).</span>
+<span class="sd">    The outputs are always a non-decreasing function of the inputs named `non_neg_inputs_name`</span>
+<span class="sd">    (no matter the weights and biases).</span>
+<span class="sd">    The outputs are not necessarily monotone w.r.t. the inputs named `other_inputs_name`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">in_features_non_neg</span><span class="p">,</span>
+        <span class="n">in_features_others</span><span class="p">,</span>
+        <span class="n">out_features</span><span class="p">,</span>
+        <span class="n">non_neg_inputs_name</span><span class="o">=</span><span class="s2">&quot;non_neg_inputs&quot;</span><span class="p">,</span>
+        <span class="n">other_inputs_name</span><span class="o">=</span><span class="s2">&quot;other_inputs&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_features_non_neg</span> <span class="o">=</span> <span class="n">in_features_non_neg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_features_others</span> <span class="o">=</span> <span class="n">in_features_others</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_features</span> <span class="o">=</span> <span class="n">out_features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_neg_inputs_name</span> <span class="o">=</span> <span class="n">non_neg_inputs_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_inputs_name</span> <span class="o">=</span> <span class="n">other_inputs_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_non_neg</span> <span class="o">=</span> <span class="n">LinearNonNeg</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">in_features_non_neg</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">out_features</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># duplicating biases is useless</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_others</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">in_features_others</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">out_features</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LinearSemiNonNeg.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.LinearSemiNonNeg.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear_non_neg</span><span class="p">(</span><span class="nb">input</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">non_neg_inputs_name</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear_others</span><span class="p">(</span>
+            <span class="nb">input</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">other_inputs_name</span><span class="p">]</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BiLinearSemiNonNeg">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.BiLinearSemiNonNeg">[docs]</a>
+<span class="k">class</span> <span class="nc">BiLinearSemiNonNeg</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">in_features_non_neg</span><span class="p">,</span>
+        <span class="n">in_features_others</span><span class="p">,</span>
+        <span class="n">out_features_non_neg</span><span class="p">,</span>
+        <span class="n">out_features_others</span><span class="p">,</span>
+        <span class="n">non_neg_inputs_name</span><span class="o">=</span><span class="s2">&quot;non_neg_inputs&quot;</span><span class="p">,</span>
+        <span class="n">other_inputs_name</span><span class="o">=</span><span class="s2">&quot;other_inputs&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Yet another custom layer that concatenates a standard</span>
+<span class="sd">        linear layer (`torch.nn.Linear`) together with a `LinearNonNeg`</span>
+<span class="sd">        layer (keeping the two layers separate).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_features_non_neg</span> <span class="o">=</span> <span class="n">in_features_non_neg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_features_others</span> <span class="o">=</span> <span class="n">in_features_others</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_features_non_neg</span> <span class="o">=</span> <span class="n">out_features_non_neg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_features_others</span> <span class="o">=</span> <span class="n">out_features_others</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">non_neg_inputs_name</span> <span class="o">=</span> <span class="n">non_neg_inputs_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_inputs_name</span> <span class="o">=</span> <span class="n">other_inputs_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_semi_non_neg</span> <span class="o">=</span> <span class="n">LinearSemiNonNeg</span><span class="p">(</span>
+            <span class="n">in_features_non_neg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">in_features_non_neg</span><span class="p">,</span>
+            <span class="n">in_features_others</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">in_features_others</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">out_features_non_neg</span><span class="p">,</span>
+            <span class="n">non_neg_inputs_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">non_neg_inputs_name</span><span class="p">,</span>
+            <span class="n">other_inputs_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">other_inputs_name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">in_features_others</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">out_features_others</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="BiLinearSemiNonNeg.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.BiLinearSemiNonNeg.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">other_inputs_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="nb">input</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">other_inputs_name</span><span class="p">]),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">non_neg_inputs_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear_semi_non_neg</span><span class="p">(</span><span class="nb">input</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Partitioned">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.Partitioned">[docs]</a>
+<span class="k">class</span> <span class="nc">Partitioned</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Unlike `torch.nn.Sequential` wich “chains” outputs to inputs</span>
+<span class="sd">    sequentially for each module in a provided list, this module</span>
+<span class="sd">    simultaneously transforms every partition of the input in parallel</span>
+<span class="sd">    using the corresponding module.</span>
+<span class="sd">    The difference between `torch.nn.Sequential` and `Partitioned` is</span>
+<span class="sd">    similar to the difference between a series and parallel electric circuit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">module_partitions</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modules_dict</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleDict</span><span class="p">(</span><span class="n">module_partitions</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Partitioned.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.Partitioned.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_partitions</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">module</span><span class="p">(</span><span class="n">input_partitions</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ShiftedEmbedding">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.ShiftedEmbedding">[docs]</a>
+<span class="k">class</span> <span class="nc">ShiftedEmbedding</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom embedding module that shifts all indices by 1.</span>
+<span class="sd">    The original `torch.nn.Embedding` layer only accepts non-negative integers as inputs.</span>
+<span class="sd">    This custom layer accepts non-negative integers and -1 as inputs.</span>
+<span class="sd">    This is useful when -1 is used to encode unknown and/or missing values</span>
+<span class="sd">    (i.e., using a sklearn.preprocessing.OrdinalEncoder with unknown_value=-1 and/or encoded_missing_value=-1).</span>
+
+<span class="sd">    The easiest way to implement this class with minimal code is to subclass</span>
+<span class="sd">    `torch.nn.Embedding` and shift the inputs by 1 in `forward` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ShiftedEmbedding.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.ShiftedEmbedding.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span>
+            <span class="mi">1</span> <span class="o">+</span> <span class="nb">input</span><span class="p">,</span>  <span class="c1"># this is the only difference with the original torch.nn.Embedding module</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_idx</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_norm</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">norm_type</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scale_grad_by_freq</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sparse</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MeanImputationEmbedding">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MeanImputationEmbedding">[docs]</a>
+<span class="k">class</span> <span class="nc">MeanImputationEmbedding</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Custom embedding module that applies &quot;mean imputation&quot; when inputs negative.</span>
+
+<span class="sd">    The original `torch.nn.Embedding` layer only accepts non-negative integers as inputs.</span>
+<span class="sd">    This custom layer also accepts negative integers as inputs.</span>
+<span class="sd">    This is useful when for instance -1 is used to encode unknown and/or missing values</span>
+<span class="sd">    (i.e., using a sklearn.preprocessing.OrdinalEncoder with unknown_value=-1 and/or encoded_missing_value=-1).</span>
+<span class="sd">    When a negative input is provided, all embeddings are averaged (form of &quot;mean imputation&quot;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MeanImputationEmbedding.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MeanImputationEmbedding.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="p">(</span><span class="nb">input</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()(</span><span class="nb">input</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">padding_idx</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_norm</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_type</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scale_grad_by_freq</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sparse</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">device</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">padding_idx</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_norm</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_type</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scale_grad_by_freq</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sparse</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability">[docs]</a>
+<span class="k">class</span> <span class="nc">MonotoneBernoulliProbability</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predicts the probability of success of an event conditioned on some features.</span>
+<span class="sd">    The structure of the neural network enforces that the predicted probability</span>
+<span class="sd">    is a monotone (i.e., non-decreasing and/or non-increasing) function of some specified</span>
+<span class="sd">    features.</span>
+
+<span class="sd">    `optimizer_params` should at least contain the keys `class` and `lr`</span>
+
+<span class="sd">    Two ways of doing inference:</span>
+<span class="sd">        - use `self.predict` directly</span>
+<span class="sd">        - use method `predict` of `pytorch_lightning.Trainer`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">module_scope</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">real_features_non_decreasing</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">real_features_non_increasing</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">real_features_non_monotone</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">categorical_feature_embeddings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">CategoricalFeatureEmbedding</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">hidden_sizes_monotone</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">hidden_sizes_non_monotone</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">polynomial_real_features_expansions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(),</span>
+        <span class="n">activation_layer_monotone</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">,</span>
+        <span class="n">activation_layer_non_monotone</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">,</span>
+        <span class="n">normalization_layer_monotone</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">BatchNorm1dNonNeg</span><span class="p">,</span>
+        <span class="n">normalization_layer_non_monotone</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">,</span>
+        <span class="n">dropout_rate_monotone</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">dropout_rate_non_monotone</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">optim_criterion_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCEWithLogitsLoss</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">optimizer_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">,</span>
+            <span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+            <span class="s2">&quot;betas&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">),</span>
+            <span class="s2">&quot;eps&quot;</span><span class="p">:</span> <span class="mf">1e-08</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">validation_metrics</span><span class="p">:</span> <span class="n">NamedTorchMetrics</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">test_metrics</span><span class="p">:</span> <span class="n">NamedTorchMetrics</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Check inputs</span>
+        <span class="c1"># -------------------</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">real_features_non_decreasing</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">real_features_non_increasing</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;real_features_non_decreasing and real_features_non_increasing must be disjoint&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">real_features_non_decreasing</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">real_features_non_monotone</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;real_features_non_decreasing and real_features_non_monotone must be disjoint&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">real_features_non_increasing</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">real_features_non_monotone</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;real_features_non_increasing and real_features_non_monotone must be disjoint&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">polynomial_real_features_expansions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">real_features_non_decreasing</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">real_features_non_increasing</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">real_features_non_monotone</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;features in polynomial_real_features_expansions should belong to either</span>
+<span class="sd">                real_features_non_decreasing or real_features_non_increasing or</span>
+<span class="sd">                real_features_non_monotone&quot;&quot;&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">feat</span><span class="p">,</span> <span class="n">degrees</span> <span class="ow">in</span> <span class="n">polynomial_real_features_expansions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">degree</span> <span class="ow">in</span> <span class="n">degrees</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">degree</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;all degrees of polynom expansions should be &gt; 1&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">feat</span> <span class="ow">in</span> <span class="n">real_features_non_decreasing</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">feat</span> <span class="ow">in</span> <span class="n">real_features_non_increasing</span><span class="p">)</span>
+                <span class="p">)</span> <span class="ow">and</span> <span class="n">degree</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<span class="w">                        </span><span class="sd">&quot;&quot;&quot;the degrees of polynom expansions should be odd integers </span>
+<span class="sd">                        for monotone (i.e., non-decreasing or non-increasing) features</span>
+<span class="sd">                        so as to preserve monotonicity&quot;&quot;&quot;</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># Features</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_decreasing</span> <span class="o">=</span> <span class="n">real_features_non_decreasing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_increasing</span> <span class="o">=</span> <span class="n">real_features_non_increasing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_features_monotone</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_decreasing</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_increasing</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_monotone</span> <span class="o">=</span> <span class="n">real_features_non_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_real_features_expansions</span> <span class="o">=</span> <span class="n">polynomial_real_features_expansions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_feature_embeddings</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">categorical_feature_embeddings</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">feature_name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_feature_embeddings</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_decreasing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_decreasing</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">degrees</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">feat</span><span class="p">,</span> <span class="n">degrees</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_real_features_expansions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_decreasing</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_increasing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_increasing</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">degrees</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">feat</span><span class="p">,</span> <span class="n">degrees</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_real_features_expansions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_increasing</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_monotone</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_decreasing</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_increasing</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_monotone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_monotone</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">degrees</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">feat</span><span class="p">,</span> <span class="n">degrees</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_real_features_expansions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_monotone</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_embeddings</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">embedding_size</span><span class="p">,</span> <span class="n">categorical_feature_embeddings</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size_features</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_monotone</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_monotone</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_embeddings</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span> <span class="o">=</span> <span class="s2">&quot;monotone_features&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span> <span class="o">=</span> <span class="s2">&quot;non_monotone_features&quot;</span>
+
+        <span class="c1"># Neural nets</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span> <span class="o">=</span> <span class="n">hidden_sizes_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span> <span class="o">=</span> <span class="n">hidden_sizes_non_monotone</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">activation_layer_monotone</span> <span class="o">=</span> <span class="n">activation_layer_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activation_layer_non_monotone</span> <span class="o">=</span> <span class="n">activation_layer_non_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalization_layer_monotone</span> <span class="o">=</span> <span class="n">normalization_layer_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalization_layer_non_monotone</span> <span class="o">=</span> <span class="n">normalization_layer_non_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_monotone</span> <span class="o">=</span> <span class="n">dropout_rate_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_non_monotone</span> <span class="o">=</span> <span class="n">dropout_rate_non_monotone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_neural_nets</span><span class="p">()</span>
+
+        <span class="c1"># Optimization</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim_criterion_params</span> <span class="o">=</span> <span class="n">optim_criterion_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_optim_criterion</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_params</span> <span class="o">=</span> <span class="n">optimizer_params</span>
+
+        <span class="c1"># Metrics</span>
+        <span class="c1"># -------------------</span>
+        <span class="c1"># Cloning the metrics is safer: modular metrics contain internal states that</span>
+        <span class="c1"># should belong to only one DataLoader, it is recommended to initialize a separate modular metric instances</span>
+        <span class="c1"># for each DataLoader and in particular use separate metrics for training, validation and testing</span>
+        <span class="c1"># see: https://torchmetrics.readthedocs.io/en/latest/pages/lightning.html?highlight=</span>
+        <span class="c1"># modular%20metrics%20contain%20internal%20states#common-pitfalls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validation_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clone_metrics</span><span class="p">(</span><span class="n">validation_metrics</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clone_metrics</span><span class="p">(</span><span class="n">test_metrics</span><span class="p">)</span>
+
+        <span class="c1"># Save hyper-parameters</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">()</span>  <span class="c1"># saves all constructor params by default</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">learning_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s2">&quot;lr&quot;</span><span class="p">]</span>
+
+    <span class="nd">@learning_rate</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">learning_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates learning rate (useful to apply `pytorch_lightning.trainer.Trainer.tune.lr_find`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">})</span>
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.forward">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_from_logits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_logits</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_forward_from_logits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_sigmoid_layer</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.configure_optimizers">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.configure_optimizers">[docs]</a>
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">optimizer_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer_params</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_params</span><span class="p">[</span><span class="s2">&quot;class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optimizer_class</span>
+        <span class="k">return</span> <span class="n">optimizer</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_clone_metrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">:</span> <span class="n">NamedTorchMetrics</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleDict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleDict</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">metric_name</span><span class="p">:</span> <span class="n">metric</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_shared_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">batch</span><span class="p">:</span> <span class="n">BatchTorchTensors</span><span class="p">,</span>
+        <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">NamedTorchTensors</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">features</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logits</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forward_from_logits</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optim_criterion</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="o">.</span><span class="n">float</span><span class="p">())</span> <span class="o">*</span> <span class="p">(</span><span class="n">weights</span> <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">batch_size</span>  <span class="c1"># type: ignore</span>
+
+    <span class="k">def</span> <span class="nf">_evaluate_metrics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="p">:</span> <span class="n">NamedTorchMetrics</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">targets</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">weights</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">signature</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">metric</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">metric</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.training_step">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.training_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">BatchTorchTensors</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="s2">&quot;training_loss&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.validation_step">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.validation_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">BatchTorchTensors</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="s2">&quot;validation_loss&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">on_step</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_metrics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validation_metrics</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validation_metrics</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="n">on_step</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.test_step">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.test_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">BatchTorchTensors</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="s2">&quot;test_loss&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">on_step</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_metrics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate_metrics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_metrics</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">test_metrics</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">on_step</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.predict_step">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.predict_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_to_self_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">feat</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">x</span><span class="p">}</span>  <span class="c1"># type: ignore</span>
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.predict">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.predict">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">features</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">training</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_step</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_to_self_device</span><span class="p">(</span><span class="n">features</span><span class="p">),</span>
+                    <span class="n">batch_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">training</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">predictions</span></div>
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.predict_from_pandas">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.predict_from_pandas">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict_from_pandas</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">features</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">data_module</span><span class="p">:</span> <span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span>
+        <span class="n">scaling_factors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]),</span>
+        <span class="n">min_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">max_augmented_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+            <span class="n">data_module</span><span class="o">.</span><span class="n">augment_transform_to_tensors</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
+                <span class="n">features</span><span class="p">,</span>
+                <span class="n">scaling_factors</span><span class="p">,</span>
+                <span class="n">min_augmented_value</span><span class="p">,</span>
+                <span class="n">max_augmented_value</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_polynom_expansion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span>
+                    <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span> <span class="o">**</span> <span class="n">degree</span> <span class="k">for</span> <span class="n">degree</span> <span class="ow">in</span> <span class="n">degrees</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">feat</span><span class="p">,</span> <span class="n">degrees</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polynomial_real_features_expansions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">x</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_logits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NamedTorchTensors</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Encode categorical features into embeddings</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">categorical_embeddings</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_embeddings_net</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical_feature_embeddings</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="p">[]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Polynom expansions of real features</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">non_monotone_polynom_expansions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polynom_expansion</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">feat</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_monotone</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">monotone_polynom_expansions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polynom_expansion</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="n">feat</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span> <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_decreasing</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">neg</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">x</span>
+                <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_monotone</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Apply core layers</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">non_monotone_features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
+            <span class="n">categorical_embeddings</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_monotone</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">non_monotone_polynom_expansions</span><span class="p">,</span>
+            <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">monotone_features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_decreasing</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">neg</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">feat</span><span class="p">])</span> <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_features_non_increasing</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">monotone_polynom_expansions</span><span class="p">,</span>
+            <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">intermediate_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_sequential_layers</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">:</span> <span class="n">monotone_features</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">:</span> <span class="n">non_monotone_features</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Apply missing layers</span>
+        <span class="c1"># -------------------</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_linear_layer</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_sequential_layers_monotone</span><span class="p">(</span>
+                    <span class="n">intermediate_outputs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">]</span>
+                <span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing_sequential_layers_non_monotone</span><span class="p">(</span>
+                    <span class="n">intermediate_outputs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">logits</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_optim_criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">optim_criterion_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_criterion_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optim_criterion</span> <span class="o">=</span> <span class="n">optim_criterion_class</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_criterion_params</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optim_criterion_params</span><span class="p">[</span><span class="s2">&quot;class&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_criterion_class</span>
+
+    <span class="k">def</span> <span class="nf">_build_neural_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Embeddings for categorical features</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_categorical_embeddings</span><span class="p">()</span>
+
+        <span class="c1"># Core sequential layers</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_core_sequential_layers</span><span class="p">()</span>
+
+        <span class="c1"># Missing layers</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_missing_layers</span><span class="p">()</span>
+
+        <span class="c1"># Final layer</span>
+        <span class="c1"># -------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_final_layer</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_build_categorical_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_embeddings_net</span> <span class="o">=</span> <span class="n">Partitioned</span><span class="p">(</span>
+            <span class="o">**</span><span class="p">{</span>
+                <span class="n">cat_feat_emb</span><span class="o">.</span><span class="n">feature_name</span><span class="p">:</span> <span class="n">MeanImputationEmbedding</span><span class="p">(</span>  <span class="c1"># ShiftedEmbedding(</span>
+                    <span class="n">num_embeddings</span><span class="o">=</span><span class="n">cat_feat_emb</span><span class="o">.</span><span class="n">nb_distinct_values</span><span class="p">,</span>
+                    <span class="n">embedding_dim</span><span class="o">=</span><span class="n">cat_feat_emb</span><span class="o">.</span><span class="n">embedding_size</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">cat_feat_emb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_feature_embeddings</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_core_sequential_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core_sequential_layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="o">*</span><span class="p">[</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="n">BiLinearSemiNonNeg</span><span class="p">(</span>
+                        <span class="n">in_features_non_neg</span><span class="o">=</span><span class="n">in_monotone</span><span class="p">,</span>
+                        <span class="n">in_features_others</span><span class="o">=</span><span class="n">in_non_monotone</span><span class="p">,</span>
+                        <span class="n">out_features_non_neg</span><span class="o">=</span><span class="n">out_monotone</span><span class="p">,</span>
+                        <span class="n">out_features_others</span><span class="o">=</span><span class="n">out_non_monotone</span><span class="p">,</span>
+                        <span class="n">non_neg_inputs_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">,</span>
+                        <span class="n">other_inputs_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">,</span>
+                    <span class="p">),</span>
+                    <span class="n">Partitioned</span><span class="p">(</span>
+                        <span class="o">**</span><span class="p">{</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation_layer_monotone</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation_layer_non_monotone</span><span class="p">(),</span>
+                        <span class="p">}</span>
+                    <span class="p">),</span>
+                    <span class="n">Partitioned</span><span class="p">(</span>
+                        <span class="o">**</span><span class="p">{</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_monotone</span><span class="p">),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span>
+                                <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_non_monotone</span>
+                            <span class="p">),</span>
+                        <span class="p">}</span>
+                    <span class="p">),</span>
+                    <span class="n">Partitioned</span><span class="p">(</span>
+                        <span class="o">**</span><span class="p">{</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization_layer_monotone</span><span class="p">(</span>
+                                <span class="n">out_monotone</span>
+                            <span class="p">),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalization_layer_non_monotone</span><span class="p">(</span>
+                                <span class="n">out_non_monotone</span>
+                            <span class="p">),</span>
+                        <span class="p">}</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">in_non_monotone</span><span class="p">,</span> <span class="n">out_non_monotone</span><span class="p">,</span> <span class="n">in_monotone</span><span class="p">,</span> <span class="n">out_monotone</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_monotone</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_embeddings</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">,</span>
+                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_monotone</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_missing_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Monotone layers</span>
+        <span class="n">nb_missing_layers_monotone</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_sequential_layers</span><span class="p">),</span> <span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_sequential_layers_monotone</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="o">*</span><span class="p">[</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="n">LinearNonNeg</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="n">out_features</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">activation_layer_monotone</span><span class="p">(),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_monotone</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalization_layer_monotone</span><span class="p">(</span><span class="n">out_features</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">[</span><span class="o">-</span><span class="n">nb_missing_layers_monotone</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">[</span><span class="o">-</span><span class="n">nb_missing_layers_monotone</span><span class="p">:],</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Non_monotone layers</span>
+        <span class="n">nb_missing_layers_non_monotone</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_sequential_layers</span><span class="p">),</span> <span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_sequential_layers_non_monotone</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="o">*</span><span class="p">[</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="n">out_features</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">activation_layer_non_monotone</span><span class="p">(),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate_non_monotone</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">normalization_layer_non_monotone</span><span class="p">(</span><span class="n">out_features</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">[</span><span class="o">-</span><span class="n">nb_missing_layers_non_monotone</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">[</span><span class="o">-</span><span class="n">nb_missing_layers_non_monotone</span><span class="p">:],</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_build_final_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_linear_layer</span> <span class="o">=</span> <span class="n">LinearSemiNonNeg</span><span class="p">(</span>
+            <span class="n">in_features_non_neg</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_monotone</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_monotone</span>
+            <span class="p">),</span>
+            <span class="n">in_features_others</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_sizes_non_monotone</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_real_features_non_monotone</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_embeddings</span>
+            <span class="p">),</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">non_neg_inputs_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_monotone_feat_name</span><span class="p">,</span>
+            <span class="n">other_inputs_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_non_monotone_feat_name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_sigmoid_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.probability_mapping">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.probability_mapping">[docs]</a>
+    <span class="k">def</span> <span class="nf">probability_mapping</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_module</span><span class="p">:</span> <span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span>
+        <span class="n">other_features</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">nb_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">trainer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the mapping between covariate `data_module.augmented_col` and the predicted probability</span>
+<span class="sd">        of the neural network on the closed interval `[min_value, max_value]`,</span>
+<span class="sd">        all `other_features` being fixed.</span>
+<span class="sd">        The mapping is discretized into `nb_points` points.</span>
+
+<span class="sd">        There are two ways to use this function:</span>
+<span class="sd">        - call with `trainer=None` =&gt; method `self.predict` is used directly for</span>
+<span class="sd">        inference</span>
+<span class="sd">        - call with `trainer=pytorch_lightning.Trainer(...)` =&gt; method `predict` of</span>
+<span class="sd">        `pytorch_lightning.Trainer` is used for inference</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">other_features</span> <span class="o">=</span> <span class="n">other_features</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># make a copy before making modifications</span>
+        <span class="n">nb_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_features</span><span class="p">)</span>
+        <span class="n">real_feature_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">min_value</span> <span class="o">+</span> <span class="p">(</span><span class="n">max_value</span> <span class="o">-</span> <span class="n">min_value</span><span class="p">)</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="n">nb_points</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_points</span><span class="p">)],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">other_features</span><span class="p">[</span><span class="n">data_module</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trainer</span><span class="p">:</span>
+            <span class="n">data_module</span><span class="o">.</span><span class="n">prediction_df</span> <span class="o">=</span> <span class="n">other_features</span>
+            <span class="n">data_module</span><span class="o">.</span><span class="n">prediction_scaling_factors</span> <span class="o">=</span> <span class="n">real_feature_values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prediction_min_augmented_value</span> <span class="o">=</span> <span class="n">min_value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prediction_max_augmented_value</span> <span class="o">=</span> <span class="n">max_value</span>
+            <span class="n">bb_conversion_proba</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_module</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bb_conversion_proba</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_from_pandas</span><span class="p">(</span>
+                <span class="n">features</span><span class="o">=</span><span class="n">other_features</span><span class="p">,</span>
+                <span class="n">data_module</span><span class="o">=</span><span class="n">data_module</span><span class="p">,</span>
+                <span class="n">scaling_factors</span><span class="o">=</span><span class="n">real_feature_values</span><span class="p">,</span>
+                <span class="n">min_augmented_value</span><span class="o">=</span><span class="n">min_value</span><span class="p">,</span>
+                <span class="n">max_augmented_value</span><span class="o">=</span><span class="n">max_value</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">other_features</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">data_module</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">other_features</span><span class="p">,</span>
+            <span class="n">real_feature_values</span><span class="p">,</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">bb_conversion_proba</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">nb_points</span><span class="p">,</span> <span class="n">nb_samples</span><span class="p">),</span> <span class="n">dim0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim1</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.assert_monotone_probability">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.assert_monotone_probability">[docs]</a>
+    <span class="k">def</span> <span class="nf">assert_monotone_probability</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_module</span><span class="p">:</span> <span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span>
+        <span class="n">other_features</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">non_decreasing</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">nb_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">trainer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="p">(</span>
+            <span class="n">other_features</span><span class="p">,</span>
+            <span class="n">real_feature_values</span><span class="p">,</span>
+            <span class="n">bb_conversion_proba</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probability_mapping</span><span class="p">(</span>
+            <span class="n">data_module</span><span class="o">=</span><span class="n">data_module</span><span class="p">,</span>
+            <span class="n">other_features</span><span class="o">=</span><span class="n">other_features</span><span class="p">,</span>
+            <span class="n">min_value</span><span class="o">=</span><span class="n">min_value</span><span class="p">,</span>
+            <span class="n">max_value</span><span class="o">=</span><span class="n">max_value</span><span class="p">,</span>
+            <span class="n">nb_points</span><span class="o">=</span><span class="n">nb_points</span><span class="p">,</span>
+            <span class="n">trainer</span><span class="o">=</span><span class="n">trainer</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">assert_monotone</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">real_feature_values</span><span class="p">,</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">bb_conversion_proba</span><span class="o">.</span><span class="n">numpy</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">non_decreasing</span><span class="o">=</span><span class="n">non_decreasing</span><span class="p">,</span>
+            <span class="n">error_message</span><span class="o">=</span><span class="n">error_message</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MonotoneBernoulliProbability.plot_probability_mapping">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.MonotoneBernoulliProbability.plot_probability_mapping">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot_probability_mapping</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data_module</span><span class="p">:</span> <span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span>
+        <span class="n">other_features</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">nb_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">x_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Covariate&quot;</span><span class="p">,</span>
+        <span class="n">y_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Predicted probability&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Evolution of the predicted probability as a function of the covariate&quot;</span><span class="p">,</span>
+        <span class="n">trainer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plotly</span><span class="o">.</span><span class="n">graph_objects</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the mapping between covariate `data_module.augmented_col` and the predicted probability</span>
+<span class="sd">        of the neural network on the closed interval `[min_value, max_value]`,</span>
+<span class="sd">        all `other_features` being fixed.</span>
+<span class="sd">        The mapping is discretized into `nb_points` points.</span>
+
+<span class="sd">        There are two ways to use this function:</span>
+<span class="sd">        - call with `trainer=None` =&gt; method `self.predict` is used directly for</span>
+<span class="sd">        inference</span>
+<span class="sd">        - call with `trainer=pytorch_lightning.Trainer(...)` =&gt; method `predict` of</span>
+<span class="sd">        `pytorch_lightning.Trainer` is used for inference</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span>
+            <span class="n">other_features</span><span class="p">,</span>
+            <span class="n">real_feature_values</span><span class="p">,</span>
+            <span class="n">bb_conversion_proba</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probability_mapping</span><span class="p">(</span>
+            <span class="n">data_module</span><span class="o">=</span><span class="n">data_module</span><span class="p">,</span>
+            <span class="n">other_features</span><span class="o">=</span><span class="n">other_features</span><span class="p">,</span>
+            <span class="n">min_value</span><span class="o">=</span><span class="n">min_value</span><span class="p">,</span>
+            <span class="n">max_value</span><span class="o">=</span><span class="n">max_value</span><span class="p">,</span>
+            <span class="n">nb_points</span><span class="o">=</span><span class="n">nb_points</span><span class="p">,</span>
+            <span class="n">trainer</span><span class="o">=</span><span class="n">trainer</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">nb_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_features</span><span class="p">)</span>
+        <span class="n">informative_features</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">data_module</span><span class="o">.</span><span class="n">output_features</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">data_module</span><span class="o">.</span><span class="n">augmented_col</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">other_features</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Sample&quot;</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">other_features</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">other_features</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">nb_points</span><span class="p">),</span> <span class="n">informative_features</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># , names=&quot;Sample&quot;</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">x_title</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">real_feature_values</span><span class="p">)</span> <span class="o">*</span> <span class="n">nb_samples</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">y_title</span><span class="p">]</span> <span class="o">=</span> <span class="n">bb_conversion_proba</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span>
+            <span class="n">df</span><span class="p">,</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x_title</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">y_title</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;Sample&quot;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+            <span class="n">hover_data</span><span class="o">=</span><span class="n">informative_features</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">hovermode</span><span class="o">=</span><span class="s2">&quot;closest&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span></div>
+</div>
+
+
+
+<span class="n">Module</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Module&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">MonotoneBernoulliProbability</span><span class="p">)</span>
+<span class="n">DataModule</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;DataModule&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">AugmentedBernoulliDataModule</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ProbabilityPredictor">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.ProbabilityPredictor">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ProbabilityPredictor</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Module</span><span class="p">,</span> <span class="n">DataModule</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Just a pair `(MonotoneBernoulliProbability, AugmentedBernoulliDataModule)`</span>
+<span class="sd">    with useful methods such as `predict_from_pandas`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">module</span><span class="p">:</span> <span class="n">Module</span>
+    <span class="n">data_module</span><span class="p">:</span> <span class="n">DataModule</span>
+
+<div class="viewcode-block" id="ProbabilityPredictor.load_from_checkpoint">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.ProbabilityPredictor.load_from_checkpoint">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_checkpoint</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">checkpoint_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">module_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">MonotoneBernoulliProbability</span><span class="p">,</span>
+        <span class="n">data_module_class</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">DataModule</span><span class="p">]</span> <span class="o">=</span> <span class="n">AugmentedBernoulliDataModule</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="n">clear_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># allows to save memory (clears training/validation/test data)</span>
+        <span class="n">compile_module</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># allows to speed up inference on GPU</span>
+        <span class="n">compilation_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProbabilityPredictor</span><span class="p">:</span>
+        <span class="n">data_module</span> <span class="o">=</span> <span class="n">data_module_class</span><span class="o">.</span><span class="n">load_from_checkpoint</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">module_class</span><span class="o">.</span><span class="n">load_from_checkpoint</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">proba_predictor</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">module</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="o">**</span><span class="n">compilation_kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">compile_module</span> <span class="k">else</span> <span class="n">module</span><span class="p">,</span>
+            <span class="n">data_module</span><span class="o">=</span><span class="n">data_module</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">proba_predictor</span><span class="o">.</span><span class="n">clear_data</span><span class="p">()</span> <span class="k">if</span> <span class="n">clear_data</span> <span class="k">else</span> <span class="n">proba_predictor</span></div>
+
+
+<div class="viewcode-block" id="ProbabilityPredictor.clear_data">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.ProbabilityPredictor.clear_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProbabilityPredictor</span><span class="p">[</span><span class="n">Module</span><span class="p">,</span> <span class="n">DataModule</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_module</span><span class="o">.</span><span class="n">clear_data</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ProbabilityPredictor.predict_from_pandas">
+<a class="viewcode-back" href="../../_api/pytorch_utils.html#pytorch_utils.modules.ProbabilityPredictor.predict_from_pandas">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict_from_pandas</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">context</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_module</span><span class="o">.</span><span class="n">transform_to_tensors</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, AI-Helpers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

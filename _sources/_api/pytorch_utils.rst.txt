@@ -36,6 +36,14 @@ pytorch\_utils.exceptions module
    :undoc-members:
    :show-inheritance:
 
+pytorch\_utils.metrics module
+-----------------------------
+
+.. automodule:: pytorch_utils.metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pytorch\_utils.miscellaneous module
 -----------------------------------
 
