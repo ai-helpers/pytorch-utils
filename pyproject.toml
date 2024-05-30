@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ai-helpers-pytorch-utils"
-version = "0.1.0a0"
+version = "0.1.0a1"
 description = "Common PyTorch utils"
 authors = ["Corentin Vasseur <vasseur.corentin@gmail.com>"]
 packages = [{ include = "pytorch_utils" }]
