@@ -1,10 +1,10 @@
-# AI Helpers - Pytorch Utils
+# AI Helpers - PyTorch Utils
 
 `pytorch-utils` is a Python module that provides a collection of utilities to simplify and enhance the use of PyTorch. These utilities are designed to make working with PyTorch more efficient and to reduce boilerplate code.
 
 ## Table of Contents
 
-- [AI Helpers - Pytorch Utils](#ai-helpers---pytorch-utils)
+- [AI Helpers - PyTorch Utils](#ai-helpers---pytorch-utils)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Getting Started](#getting-started)

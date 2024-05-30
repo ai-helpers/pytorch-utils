@@ -1,10 +1,16 @@
 [tool.poetry]
 name = "ai-helpers-pytorch-utils"
 version = "0.1.0a0"
-description = "Common pytorch utils"
+description = "Common PyTorch utils"
 authors = ["Corentin Vasseur <vasseur.corentin@gmail.com>"]
 packages = [{ include = "pytorch_utils" }]
 readme = "README.md"
+repository = "https://github.com/ai-helpers/pytorch-utils"
+documentation = "https://ai-helpers.github.io/pytorch-utils/"
+keywords = ["machine-learning", "pytorch", "utils"]
+classifiers = [
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.11"
