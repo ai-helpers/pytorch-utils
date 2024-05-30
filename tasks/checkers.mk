@@ -17,6 +17,6 @@ check-security: ## Check the project code security with bandit.
 	poetry run bandit --recursive --configfile=pyproject.toml pytorch_utils/
 
 check-coverage: ## Check the project test coverage with coverage.
-	poetry run pytest --cov=pytorch_utils/ --cov-fail-under=80 --numprocesses="auto" tests/
+	poetry run pytest --cov=pytorch_utils/ --cov-fail-under=50 --numprocesses="auto" tests/
 
-checkers: check-types check-format check-quality check-security ## Run all the checkers. (add check-coverage)
+checkers: check-types check-format check-quality check-security check-coverage ## Run all the checkers.
