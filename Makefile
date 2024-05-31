@@ -15,3 +15,4 @@ include tasks/checkers.mk
 include tasks/cleaners.mk
 include tasks/documenters.mk
 include tasks/formatters.mk
+include tasks/reporters.mk

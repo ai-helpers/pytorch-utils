@@ -1,5 +1,9 @@
 # AI Helpers - PyTorch Utils
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ai-helpers_pytorch-utils&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ai-helpers_pytorch-utils)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ai-helpers_pytorch-utils&metric=bugs)](https://sonarcloud.io/summary/new_code?id=ai-helpers_pytorch-utils)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ai-helpers_pytorch-utils&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=ai-helpers_pytorch-utils)
+
 `pytorch-utils` is a Python module that provides a collection of utilities to simplify and enhance the use of PyTorch. These utilities are designed to make working with PyTorch more efficient and to reduce boilerplate code.
 
 ## Table of Contents
