@@ -23,7 +23,7 @@ def get_active_mlflow_experiment_id():
 def mlflow_log_pandas_artifact(
     df: pd.DataFrame, df_name: str, artifact_path: Optional[str] = None
 ) -> None:
-    tmp_path_csv = f"/tmp/{df_name}.csv"
+    tmp_path_csv = f"/TMPDIR/{df_name}.csv"
     df.reset_index().to_csv(tmp_path_csv, index=False)
     mlflow.log_artifact(tmp_path_csv, artifact_path=artifact_path)
     os.remove(tmp_path_csv)
