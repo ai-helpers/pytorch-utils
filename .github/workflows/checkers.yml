@@ -21,11 +21,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          version: "1.8.1"
+          python-version: "3.10"
       - name: Install
-        run: poetry install --with dev
+        run: uv sync --locked
       - name: Checkers
         run: make checkers
