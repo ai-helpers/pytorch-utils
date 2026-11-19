@@ -1,4 +1,4 @@
 build-%: ## Build package for format %.
-	poetry build --format=$*
+	uv build --$*
 
 builders: build-wheel ## Run all the builders.

@@ -14,7 +14,6 @@ clean-python: ## Clean the Python caches.
 
 clean-install: ## Clean the project install.
 	rm -rf .venv/
-	rm -f poetry.lock
 
 clean-packages: ## Clean the project packages.
 	rm -rf dist/

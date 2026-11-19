@@ -2,7 +2,7 @@ bump-python-version: isset-PYTHON_VERSION ## Bump the python version installed.
 	echo "$(PYTHON_VERSION)" > .python-version
 
 bump-python-project: isset-PYTHON_VERSION ## Bump the python version of the project.
-	sed -i.bak 's/^python = .*/python = "^$(PYTHON_VERSION)"/' pyproject.toml && rm pyproject.toml.bak
+	sed -i.bak 's/^requires-python = .*/requires-python = ">=$(PYTHON_VERSION),<4.0"/' pyproject.toml && rm pyproject.toml.bak
 
 bump-package-project: isset-PACKAGE_VERSION ## Bump the package version of the project.
 	sed -i.bak 's/^version = .*/version = "$(PACKAGE_VERSION)"/' pyproject.toml && rm pyproject.toml.bak
